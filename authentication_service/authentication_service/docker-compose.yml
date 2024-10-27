@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  django-auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django-auth-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+
