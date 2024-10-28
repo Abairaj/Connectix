@@ -1,5 +1,12 @@
 from pathlib import Path
 
+import environ
+
+env = environ.Env()
+environ.Env.read_env()  # load the .env file
+
+REDIS_URL = env("REDIS_URL")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,7 +52,7 @@ ROOT_URLCONF = "authentication_service.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": ["accounts/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
