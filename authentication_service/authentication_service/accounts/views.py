@@ -8,13 +8,23 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
 
-from .serializers import UserLoginSerializer
+from .serializers import UserLoginSerializer, UserSerializer
 from .utils import (get_redis_client, send_magic_link_email,
                     send_password_reset_email)
 
 token_generator = PasswordResetTokenGenerator()
 
 redis_client = get_redis_client()
+
+
+class RegisterUserView(APIView):
+    permission_classes = ()
+
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.create_user(**serializer.validated_data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserLoginView(APIView):
@@ -83,7 +93,6 @@ class UserLogoutView(APIView):
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -92,17 +101,22 @@ class ForgotPasswordView(APIView):
 
     def post(self, request):
         email = request.data.get("email")
-        user = User.objects.filter(email=email)
-        token = token_generator.make_token(email)
+        user = User.objects.get(email=email)
+        token = token_generator.make_token(user)
         redis_client.set(token, email, ex=86400)
-        if user.exists():
+        if user:
             # todo have to give correct link to frontend
             send_password_reset_email(
                 email, f"http://localhost:3000/reset-password?token={token}"
             )
+            return Response(status=status.HTTP_200_OK)
         return Response(
             status=status.HTTP_400_BAD_REQUEST, message="User with this Email not found"
         )
+
+
+# todo check whether the password is same as old password
+#  blacklist the old token after changing password
 
 
 class ResetPasswordView(APIView):
@@ -111,11 +125,11 @@ class ResetPasswordView(APIView):
     def post(self, request):
         token = request.data.get("token")
         password = request.data.get("password")
-        email = redis_client.get(token)
+        email = redis_client.get(token).decode()
         redis_client.delete(token)
         if email:
-            user = User.objects.filter(email=email)
-            if user.exists():
-                user.update(password=make_password(password))
+            user = User.objects.get(email=email)
+            if user:
+                user.set_password(password)
                 return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)

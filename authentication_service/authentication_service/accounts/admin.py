@@ -1,9 +1,6 @@
 from django.contrib import admin
 
-from .models import JoinRequest, Organization, User
-
-admin.site.register(Organization)
-admin.site.register(JoinRequest)
+from .models import User
 
 
 @admin.register(User)

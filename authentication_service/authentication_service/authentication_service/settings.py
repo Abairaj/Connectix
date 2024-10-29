@@ -1,12 +1,20 @@
+import os
 from pathlib import Path
 
-import environ
+from dotenv import load_dotenv
 
-env = environ.Env()
-environ.Env.read_env()  # load the .env file
+# Load environment variables from .env file
+load_dotenv()
 
-REDIS_URL = env("REDIS_URL")
-
+REDIS_URL = os.getenv("REDIS_URL")
+# Email configuration
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
